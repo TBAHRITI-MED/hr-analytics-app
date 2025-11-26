@@ -404,35 +404,34 @@ def page_exploration(df):
         # Matrice de corrélation
         corr_matrix = df_encoded.corr()
         
-        # Top corrélations avec Attrition
-        st.markdown("#### Corrélations avec l'Attrition")
+# --- DÉBUT DE LA MODIFICATION ---
+        st.markdown("#### Corrélations avec une variable cible")
         
-        attrition_corr = corr_matrix['Attrition'].drop('Attrition').sort_values(key=abs, ascending=False)
+        # Sélecteur pour choisir la variable de référence (par défaut JobSatisfaction si dispo, sinon Attrition)
+        target_options = df_encoded.columns.tolist()
+        default_index = target_options.index('JobSatisfaction') if 'JobSatisfaction' in target_options else 0
         
-        fig = px.bar(x=attrition_corr.head(15).values, 
-                    y=attrition_corr.head(15).index,
+        target_col = st.selectbox("Choisir la variable à analyser :", target_options, index=default_index)
+        
+        # Calcul des corrélations pour la variable choisie
+        target_corr = corr_matrix[target_col].drop(target_col).sort_values(key=abs, ascending=False)
+        
+        # Affichage du graphique
+        fig = px.bar(x=target_corr.head(15).values, 
+                    y=target_corr.head(15).index,
                     orientation='h',
-                    color=attrition_corr.head(15).values,
+                    # Couleur dynamique : vert si positif, rouge si négatif
+                    color=target_corr.head(15).values,
                     color_continuous_scale='RdBu_r',
-                    title="Top 15 Corrélations avec l'Attrition")
+                    title=f"Top 15 Corrélations avec {target_col}")
+        
         fig.update_layout(yaxis={'categoryorder':'total ascending'})
         st.plotly_chart(fig, use_container_width=True)
         
-        # Heatmap complète
-        st.markdown("#### Matrice de Corrélation Complète")
-        
-        # Sélection des variables pour la heatmap
-        vars_for_heatmap = st.multiselect("Variables pour la heatmap:", 
-                                          corr_matrix.columns.tolist(),
-                                          default=corr_matrix.columns.tolist()[:15])
-        
-        if vars_for_heatmap:
-            fig = px.imshow(corr_matrix.loc[vars_for_heatmap, vars_for_heatmap],
-                           color_continuous_scale='RdBu_r',
-                           aspect='auto',
-                           title="Matrice de Corrélation")
-            fig.update_layout(height=600)
-            st.plotly_chart(fig, use_container_width=True)
+        # Afficher le tableau des valeurs exactes
+        with st.expander(f"Voir les coefficients exacts pour {target_col}"):
+            st.dataframe(target_corr, use_container_width=True)
+        # --- FIN DE LA MODIFICATION ---
 
 
 # ==================== PAGE: ANALYSE FACTORIELLE ====================
