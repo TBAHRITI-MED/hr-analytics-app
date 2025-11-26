@@ -292,7 +292,7 @@ def page_exploration(df):
     st.markdown("## 📊 Exploration des Données (EDA)")
     
     # Tabs pour organiser l'exploration
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 Aperçu", "📈 Distributions", "🔗 Corrélations", "⚠️ Outliers"])
+    tab1, tab2, tab3 = st.tabs(["📋 Aperçu", "📈 Distributions", "🔗 Corrélations"])
     
     quant_vars, qual_vars = get_variable_types(df)
     
@@ -433,56 +433,6 @@ def page_exploration(df):
                            title="Matrice de Corrélation")
             fig.update_layout(height=600)
             st.plotly_chart(fig, use_container_width=True)
-    
-    with tab4:
-        st.markdown("### Détection des Outliers")
-        
-        st.markdown("""
-        <div class="info-box">
-        Nous utilisons la méthode IQR (Interquartile Range) pour détecter les outliers.
-        Un point est considéré comme outlier s'il est en dehors de l'intervalle [Q1 - 1.5*IQR, Q3 + 1.5*IQR].
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Boxplots
-        selected_vars = st.multiselect("Sélectionner les variables:", 
-                                       quant_vars, 
-                                       default=['Age', 'MonthlyIncome', 'YearsAtCompany', 'TotalWorkingYears'])
-        
-        if selected_vars:
-            fig = make_subplots(rows=1, cols=len(selected_vars), 
-                               subplot_titles=selected_vars)
-            
-            for i, var in enumerate(selected_vars):
-                fig.add_trace(
-                    go.Box(y=df[var], name=var, marker_color='#667eea'),
-                    row=1, col=i+1
-                )
-            
-            fig.update_layout(height=400, showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # Comptage des outliers
-        st.markdown("#### Nombre d'Outliers par Variable")
-        
-        outlier_counts = {}
-        for var in quant_vars:
-            Q1 = df[var].quantile(0.25)
-            Q3 = df[var].quantile(0.75)
-            IQR = Q3 - Q1
-            outliers = ((df[var] < Q1 - 1.5*IQR) | (df[var] > Q3 + 1.5*IQR)).sum()
-            outlier_counts[var] = outliers
-        
-        outlier_df = pd.DataFrame.from_dict(outlier_counts, orient='index', columns=['Outliers'])
-        outlier_df = outlier_df.sort_values('Outliers', ascending=False)
-        
-        fig = px.bar(outlier_df.head(10), 
-                    x=outlier_df.head(10).index, 
-                    y='Outliers',
-                    title="Top 10 Variables avec Outliers",
-                    color='Outliers',
-                    color_continuous_scale='Reds')
-        st.plotly_chart(fig, use_container_width=True)
 
 
 # ==================== PAGE: ANALYSE FACTORIELLE ====================
@@ -1511,81 +1461,69 @@ def page_classification(df):
 # ==================== PAGE: CONCLUSION ====================
 
 def page_conclusion():
-    st.markdown("## 📝 Conclusion et Recommandations")
+    st.markdown("## 📝 Conclusion")
     
-    st.markdown("### 🎯 Synthèse de l'Analyse")
+    st.markdown("### 🎯 Résultats Clés")
     
-    st.markdown("""
-    <div class="info-box">
-    Ce projet a permis d'analyser en profondeur les facteurs d'attrition des employés chez IBM 
-    à travers une approche multidimensionnelle combinant analyse factorielle, clustering et 
-    machine learning.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown("#### 📊 Résultats Principaux")
         st.markdown("""
-        **Analyse Factorielle (AFDM):**
-        - Identification des axes structurants du dataset
-        - Mise en évidence des oppositions entre profils d'employés
-        - Projection des individus permettant une visualisation intuitive
-        
-        **Clustering:**
-        - Segmentation des employés en groupes homogènes
-        - Identification de clusters à haut risque d'attrition
-        - Profilage détaillé de chaque segment
-        """)
+        <div class="metric-card">
+            <h4>📊 AFDM</h4>
+            <p>3 axes retenus<br>~50% d'inertie</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("#### 🤖 Modélisation Prédictive")
         st.markdown("""
-        **Performance du modèle:**
-        - Prédiction fiable de l'attrition
-        - Identification des variables clés
-        - Interprétabilité des résultats
-        
-        **Variables les plus impactantes:**
-        - OverTime (heures supplémentaires)
-        - MonthlyIncome (salaire)
-        - Age et ancienneté
-        - Satisfaction au travail
-        """)
+        <div class="metric-card">
+            <h4>🎯 Clustering</h4>
+            <p>4 profils identifiés<br>1 cluster à risque</p>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.markdown("### 💡 Recommandations Métier")
+    with col3:
+        st.markdown("""
+        <div class="metric-card">
+            <h4>🤖 Prédiction</h4>
+            <p>F1-Score ~0.75<br>AUC-ROC ~0.82</p>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.markdown("""
-    <div class="success-box">
-    <strong>Actions recommandées pour réduire l'attrition :</strong>
-    <ol>
-    <li><strong>Gestion des heures supplémentaires :</strong> Limiter le recours systématique aux heures supplémentaires qui augmentent significativement le risque de départ.</li>
-    <li><strong>Politique salariale :</strong> Revoir les rémunérations, particulièrement pour les employés à faible revenu qui montrent un taux d'attrition plus élevé.</li>
-    <li><strong>Programme de rétention ciblé :</strong> Mettre en place des actions spécifiques pour les clusters identifiés à haut risque.</li>
-    <li><strong>Amélioration de l'environnement de travail :</strong> Investir dans la satisfaction au travail et l'équilibre vie professionnelle/personnelle.</li>
-    <li><strong>Parcours de carrière :</strong> Offrir des perspectives d'évolution claires pour les jeunes employés qui représentent un risque de départ plus élevé.</li>
-    </ol>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("---")
     
-    st.markdown("### 📈 Perspectives d'Amélioration")
+    st.markdown("### 🔑 Facteurs Principaux d'Attrition")
     
-    st.markdown("""
-    - **Enrichissement des données :** Intégrer des données temporelles pour une analyse longitudinale
-    - **Modèles avancés :** Tester des approches de deep learning ou d'ensemble methods
-    - **Analyse de survie :** Utiliser des modèles de survie pour prédire le temps avant départ
-    - **Dashboard opérationnel :** Déployer un outil de monitoring en temps réel
+    factors = {
+        "OverTime": "Les heures supplémentaires augmentent fortement le risque de départ",
+        "MonthlyIncome": "Les salaires bas sont corrélés à plus d'attrition",
+        "Age": "Les jeunes employés (<30 ans) partent plus souvent",
+        "YearsAtCompany": "Risque élevé dans les 2 premières années",
+        "JobSatisfaction": "Faible satisfaction = fort risque de départ"
+    }
+    
+    for factor, desc in factors.items():
+        st.markdown(f"**{factor}** : {desc}")
+    
+    st.markdown("---")
+    
+    st.markdown("### 💡 Recommandations")
+    
+    st.success("""
+    **Actions prioritaires pour réduire l'attrition :**
+    
+    1. **Limiter les heures supplémentaires** systématiques
+    2. **Revoir les salaires** des postes à risque
+    3. **Programme d'intégration** renforcé pour les nouveaux
+    4. **Suivi régulier** de la satisfaction des employés
+    5. **Plan de carrière** clair pour les jeunes talents
     """)
     
-    st.markdown("### 📚 Références")
+    st.markdown("---")
     
-    st.markdown("""
-    - IBM Watson Analytics Sample Dataset
-    - Prince library pour l'AFDM : https://github.com/MaxHalford/prince
-    - Scikit-learn documentation : https://scikit-learn.org/
-    - Streamlit documentation : https://docs.streamlit.io/
-    """)
+    st.markdown("### 📚 Outils Utilisés")
+    st.write("Python, Streamlit, Pandas, Scikit-learn, Prince (AFDM), Plotly")
 
 
 # ==================== MAIN ====================
@@ -1601,26 +1539,11 @@ def main():
     )
     
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### 📁 Dataset")
-    
-    # Upload de fichier
-    uploaded_file = st.sidebar.file_uploader(
-        "📤 Charger le CSV",
-        type=['csv'],
-        help="Téléchargez le dataset IBM HR depuis Kaggle"
-    )
-    
-    if uploaded_file is None:
-        st.sidebar.info("💡 Téléchargez le dataset depuis [Kaggle](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)")
-    else:
-        st.sidebar.success("✅ Fichier chargé!")
-    
-    st.sidebar.markdown("---")
     st.sidebar.markdown("### 👥 Équipe")
     st.sidebar.markdown("""
-    - TBAHRITI Mohammed
-    - MOULAI Youcef
-    - YAHIA OUAHMED Yanis
+    - Membre 1
+    - Membre 2  
+    - Membre 3
     """)
     
     st.sidebar.markdown("---")
@@ -1628,7 +1551,7 @@ def main():
     st.sidebar.markdown("*INFO0902 - Analyse des Données*")
     
     # Chargement des données
-    df = load_data(uploaded_file)
+    df = load_data()
     
     if df is not None:
         # Navigation
@@ -1645,14 +1568,7 @@ def main():
         elif page == "📝 Conclusion":
             page_conclusion()
     else:
-        st.warning("⚠️ Veuillez charger le dataset IBM HR Analytics depuis la barre latérale.")
-        st.markdown("""
-        ### Comment obtenir le dataset :
-        
-        1. Allez sur [Kaggle - IBM HR Analytics](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)
-        2. Téléchargez le fichier `WA_Fn-UseC_-HR-Employee-Attrition.csv`
-        3. Uploadez-le dans la barre latérale à gauche
-        """)
+        st.error("⚠️ Dataset non trouvé! Veuillez vous assurer que le fichier `data/WA_Fn-UseC_-HR-Employee-Attrition.csv` existe.")
 
 
 if __name__ == "__main__":
