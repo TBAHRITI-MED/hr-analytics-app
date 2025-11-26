@@ -12,7 +12,7 @@
 | | |
 |---|---|
 | **Cours** | INFO0902 - Analyse des Données |
-| **Formation** | Master 2 Intelligence Artificielle & Data Science |
+| **Formation** | Master 2 Intelligence Artificielle|
 | **Université** | Université de Reims Champagne-Ardenne (URCA) |
 | **Année** | 2025-2026 |
 
