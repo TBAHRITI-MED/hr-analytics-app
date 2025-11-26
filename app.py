@@ -88,7 +88,7 @@ st.markdown("""
         background-color: #D1FAE5;
         padding: 1rem;
         border-radius: 8px;
-        border-left: 4px solid #10B981;
+        border-left: 4px sol    id #10B981;
     }
 </style>
 """, unsafe_allow_html=True)
