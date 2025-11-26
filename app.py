@@ -1519,10 +1519,7 @@ def page_conclusion():
     5. **Plan de carrière** clair pour les jeunes talents
     """)
     
-    st.markdown("---")
-    
-    st.markdown("### 📚 Outils Utilisés")
-    st.write("Python, Streamlit, Pandas, Scikit-learn, Prince (AFDM), Plotly")
+   
 
 
 # ==================== MAIN ====================
