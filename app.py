@@ -1541,9 +1541,9 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 👥 Équipe")
     st.sidebar.markdown("""
-    - Membre 1
-    - Membre 2  
-    - Membre 3
+    - TBAHRITI Mohammed
+    - YAHIA OUAHMED Yanis  
+    - MOULAI Youcef
     """)
     
     st.sidebar.markdown("---")
