@@ -361,43 +361,9 @@ hr_analytics_project/
 
 ---
 
-## 💻 Technologies Utilisées
 
-### Langages & Frameworks
-| Technologie | Usage |
-|-------------|-------|
-| **Python 3.9+** | Langage principal |
-| **Streamlit** | Interface web interactive |
 
-### Librairies Data Science
-| Librairie | Usage |
-|-----------|-------|
-| **Pandas** | Manipulation des données |
-| **NumPy** | Calculs numériques |
-| **Scikit-learn** | Machine Learning |
-| **Prince** | Analyse factorielle (ACP, ACM, AFDM, AFC) |
-| **Imbalanced-learn** | SMOTE pour le déséquilibre |
 
-### Visualisation
-| Librairie | Usage |
-|-----------|-------|
-| **Plotly** | Graphiques interactifs |
-| **Matplotlib** | Graphiques statiques |
-| **Seaborn** | Visualisations statistiques |
-
----
-
-## 👥 Équipe
-
-| Nom | Prénom | Contribution |
-|-----|--------|--------------|
-| ... | ... | EDA, Prétraitement des données |
-| ... | ... | Analyse Factorielle, Interprétation |
-| ... | ... | Clustering, Classification, Application |
-
----
-
-## 📚 Références
 
 ### Bibliographie
 - Escofier, B., & Pagès, J. (2008). *Analyses factorielles simples et multiples*. Dunod.
@@ -423,6 +389,6 @@ Ce projet est réalisé dans un cadre académique pour le cours INFO0902 de l'Un
 ---
 
 <p align="center">
-  <i>Projet réalisé dans le cadre du Master 2 IA & Data Science - URCA</i><br>
+  <i>Projet réalisé dans le cadre du Master 2 IA  - URCA</i><br>
   <i>Année universitaire 2025-2026</i>
 </p>
