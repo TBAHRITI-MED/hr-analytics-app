@@ -70,7 +70,6 @@ L'application web interactive développée avec **Streamlit** permet d'explorer 
 ### Source
 **IBM HR Analytics Employee Attrition & Performance**
 - 🔗 [Kaggle](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)
-- Dataset fictif créé par les data scientists d'IBM
 
 ### Caractéristiques
 | Caractéristique | Valeur |
