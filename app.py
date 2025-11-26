@@ -1499,7 +1499,7 @@ def page_conclusion():
         "OverTime": "Les heures supplémentaires augmentent fortement le risque de départ",
         "MonthlyIncome": "Les salaires bas sont corrélés à plus d'attrition",
         "Age": "Les jeunes employés (<30 ans) partent plus souvent",
-        "YearsAtCompany": "Risque élevé dans les 2 premières années",
+        "YearsAtCompany": "Les employés avec peu d'ancienneté sont plus susceptibles de partir",
         "JobSatisfaction": "Faible satisfaction = fort risque de départ"
     }
     

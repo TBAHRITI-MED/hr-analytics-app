@@ -124,9 +124,8 @@ Attrition = Yes : 16% (237 employés)
 | Étape | Description |
 |-------|-------------|
 | Statistiques descriptives | Moyenne, médiane, écart-type, quartiles |
-| Visualisation des distributions | Histogrammes, boxplots, diagrammes en barres |
+| Visualisation des distributions | Histogrammes, diagrammes en barres |
 | Analyse des corrélations | Matrice de corrélation, top corrélations avec Attrition |
-| Détection des outliers | Méthode IQR (Interquartile Range) |
 
 ### 2. Analyse Factorielle (4 Méthodes au Choix)
 
@@ -214,7 +213,6 @@ Le dataset IBM HR contient des variables **quantitatives** (Age, MonthlyIncome, 
 - **Aperçu** : Shape, types, statistiques descriptives
 - **Distributions** : Histogrammes, pie charts, bar plots
 - **Corrélations** : Heatmap, top corrélations avec Attrition
-- **Outliers** : Boxplots, comptage par variable
 
 ### 🔬 Page Analyse Factorielle
 - **Sélection du modèle** : ACP, ACM, AFDM ou AFC
@@ -299,9 +297,7 @@ streamlit run app.py
 L'application s'ouvre automatiquement dans le navigateur à l'adresse : `http://localhost:8501`
 
 ### Chargement des Données
-1. **Option 1** : Le dataset de démonstration est inclus dans `data/`
-2. **Option 2** : Uploadez votre propre CSV via la barre latérale
-3. **Option 3** : Téléchargez le dataset original depuis [Kaggle](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)
+Le dataset IBM HR Analytics est **inclus par défaut** dans le dossier `data/WA_Fn-UseC_-HR-Employee-Attrition.csv`. L'application charge automatiquement ce fichier au démarrage.
 
 ### Workflow Recommandé
 1. 📊 **Explorer** les données dans l'onglet EDA
@@ -360,9 +356,19 @@ hr_analytics_project/
 
 ---
 
+## 👥 Équipe
 
+- **TBAHRITI Mohammed**
+- **YAHIA OUAHMED Yanis**
+- **MOULAI Youcef**
 
+*Master 2 Intelligence Artificielle & Data Science*  
+*Université de Reims Champagne-Ardenne (URCA)*  
+*Année 2025-2026*
 
+---
+
+## 📚 Références
 
 ### Bibliographie
 - Escofier, B., & Pagès, J. (2008). *Analyses factorielles simples et multiples*. Dunod.
