@@ -1228,122 +1228,122 @@ def display_interpretation(model, col_coords, n_components, analysis_name, df_an
         st.info("Contributions non disponibles pour ce type d'analyse.")
 
 
-# ==================== PAGE: CLUSTERING ====================
+# ==================== PAGE: CLUSTERING (COMMENTÉE) ====================
 
-def page_clustering(df):
-    st.markdown("## 🎯 Clustering des Employés")
-    st.markdown('<div class="info-box"><strong>Objectif :</strong> Identifier des groupes homogènes d\'employés avec K-Means et CAH.</div>', unsafe_allow_html=True)
-
-    df_processed = preprocess_for_analysis(df)
-    df_encoded, label_encoders = encode_categorical(df_processed)
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(df_encoded)
-
-    tab1, tab2, tab3 = st.tabs(["📊 K-Means", "🌳 CAH", "📈 Profilage"])
-
-    with tab1:
-        st.markdown("### K-Means Clustering")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("#### Méthode du Coude")
-            inertias, silhouettes = [], []
-            K_range = range(2, 11)
-            for k in K_range:
-                km = KMeans(n_clusters=k, random_state=42, n_init=10)
-                km.fit(X_scaled)
-                inertias.append(km.inertia_)
-                silhouettes.append(silhouette_score(X_scaled, km.labels_))
-
-            fig = make_subplots(specs=[[{"secondary_y": True}]])
-            fig.add_trace(go.Scatter(x=list(K_range), y=inertias, name="Inertie",
-                                    mode='lines+markers', marker_color='#667eea'), secondary_y=False)
-            fig.add_trace(go.Scatter(x=list(K_range), y=silhouettes, name="Silhouette",
-                                    mode='lines+markers', marker_color='#EF4444'), secondary_y=True)
-            fig.update_layout(title="Coude & Silhouette")
-            fig.update_xaxes(title_text="K")
-            fig.update_yaxes(title_text="Inertie", secondary_y=False)
-            fig.update_yaxes(title_text="Silhouette", secondary_y=True)
-            st.plotly_chart(fig, use_container_width=True)
-        with col2:
-            n_clusters = st.slider("Nombre de clusters K:", 2, 10, 4)
-
-        if st.button("🚀 Appliquer K-Means", type="primary"):
-            with st.spinner("Clustering en cours..."):
-                kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
-                clusters = kmeans.fit_predict(X_scaled)
-                df_clustered = df_processed.copy()
-                df_clustered['Cluster'] = clusters
-
-                pca_2d = PCA(n_components=2)
-                X_pca = pca_2d.fit_transform(X_scaled)
-                df_viz = pd.DataFrame({'PC1': X_pca[:, 0], 'PC2': X_pca[:, 1],
-                                      'Cluster': clusters.astype(str), 'Attrition': df_processed['Attrition']})
-
-                col1, col2 = st.columns(2)
-                with col1:
-                    fig = px.scatter(df_viz, x='PC1', y='PC2', color='Cluster',
-                                    title="Clusters (PCA)", color_discrete_sequence=px.colors.qualitative.Set1)
-                    st.plotly_chart(fig, use_container_width=True)
-                with col2:
-                    fig = px.scatter(df_viz, x='PC1', y='PC2', color='Attrition',
-                                    title="Attrition (PCA)", color_discrete_map={'No': '#10B981', 'Yes': '#EF4444'})
-                    st.plotly_chart(fig, use_container_width=True)
-
-                col1, col2, col3 = st.columns(3)
-                col1.metric("Score Silhouette", f"{silhouette_score(X_scaled, clusters):.3f}")
-                col2.metric("Inertie", f"{kmeans.inertia_:.2f}")
-                col3.metric("Clusters", n_clusters)
-
-                st.session_state['clusters'] = clusters
-                st.session_state['df_clustered'] = df_clustered
-                st.success("✅ Clustering terminé! Consultez l'onglet Profilage.")
-
-    with tab2:
-        st.markdown("### Classification Ascendante Hiérarchique (CAH)")
-        sample_size = st.slider("Taille de l'échantillon:", 100, min(1000, len(df)), 500)
-        linkage_method = st.selectbox("Méthode de liaison:", ['ward', 'complete', 'average', 'single'])
-
-        if st.button("🌳 Générer le Dendrogramme"):
-            with st.spinner("Calcul du dendrogramme..."):
-                indices = np.random.choice(len(X_scaled), sample_size, replace=False)
-                X_sample = X_scaled[indices]
-                Z = linkage(X_sample, method=linkage_method)
-                fig, ax = plt.subplots(figsize=(12, 6))
-                dendrogram(Z, truncate_mode='level', p=5, ax=ax)
-                ax.set_title("Dendrogramme (CAH)")
-                ax.set_xlabel("Individus")
-                ax.set_ylabel("Distance")
-                st.pyplot(fig)
-
-    with tab3:
-        st.markdown("### Profilage des Clusters")
-        if 'df_clustered' in st.session_state:
-            df_clustered = st.session_state['df_clustered']
-            attrition_by_cluster = df_clustered.groupby('Cluster')['Attrition'].value_counts(normalize=True).unstack()
-            fig = px.bar(attrition_by_cluster, barmode='group', title="Taux d'Attrition par Cluster")
-            st.plotly_chart(fig, use_container_width=True)
-
-            quant_vars, _ = get_variable_types(df_clustered)
-            quant_vars = [v for v in quant_vars if v != 'Cluster']
-            cluster_means = df_clustered.groupby('Cluster')[quant_vars].mean()
-            cluster_means_norm = (cluster_means - cluster_means.min()) / (cluster_means.max() - cluster_means.min() + 1e-9)
-
-            default_radar = [v for v in ['Age', 'MonthlyIncome', 'YearsAtCompany', 'JobSatisfaction', 'WorkLifeBalance'] if v in quant_vars]
-            selected_vars = st.multiselect("Variables pour le profil radar:", quant_vars, default=default_radar)
-
-            if selected_vars:
-                fig = go.Figure()
-                for cluster in cluster_means_norm.index:
-                    fig.add_trace(go.Scatterpolar(
-                        r=cluster_means_norm.loc[cluster, selected_vars].values,
-                        theta=selected_vars, fill='toself', name=f'Cluster {cluster}'
-                    ))
-                fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 1])), title="Profil des Clusters")
-                st.plotly_chart(fig, use_container_width=True)
-
-            st.dataframe(cluster_means.round(2), use_container_width=True)
-        else:
-            st.warning("Veuillez d'abord effectuer le clustering K-Means.")
+# def page_clustering(df):
+#     st.markdown("## 🎯 Clustering des Employés")
+#     st.markdown('<div class="info-box"><strong>Objectif :</strong> Identifier des groupes homogènes d\'employés avec K-Means et CAH.</div>', unsafe_allow_html=True)
+#
+#     df_processed = preprocess_for_analysis(df)
+#     df_encoded, label_encoders = encode_categorical(df_processed)
+#     scaler = StandardScaler()
+#     X_scaled = scaler.fit_transform(df_encoded)
+#
+#     tab1, tab2, tab3 = st.tabs(["📊 K-Means", "🌳 CAH", "📈 Profilage"])
+#
+#     with tab1:
+#         st.markdown("### K-Means Clustering")
+#         col1, col2 = st.columns(2)
+#         with col1:
+#             st.markdown("#### Méthode du Coude")
+#             inertias, silhouettes = [], []
+#             K_range = range(2, 11)
+#             for k in K_range:
+#                 km = KMeans(n_clusters=k, random_state=42, n_init=10)
+#                 km.fit(X_scaled)
+#                 inertias.append(km.inertia_)
+#                 silhouettes.append(silhouette_score(X_scaled, km.labels_))
+#
+#             fig = make_subplots(specs=[[{"secondary_y": True}]])
+#             fig.add_trace(go.Scatter(x=list(K_range), y=inertias, name="Inertie",
+#                                     mode='lines+markers', marker_color='#667eea'), secondary_y=False)
+#             fig.add_trace(go.Scatter(x=list(K_range), y=silhouettes, name="Silhouette",
+#                                     mode='lines+markers', marker_color='#EF4444'), secondary_y=True)
+#             fig.update_layout(title="Coude & Silhouette")
+#             fig.update_xaxes(title_text="K")
+#             fig.update_yaxes(title_text="Inertie", secondary_y=False)
+#             fig.update_yaxes(title_text="Silhouette", secondary_y=True)
+#             st.plotly_chart(fig, use_container_width=True)
+#         with col2:
+#             n_clusters = st.slider("Nombre de clusters K:", 2, 10, 4)
+#
+#         if st.button("🚀 Appliquer K-Means", type="primary"):
+#             with st.spinner("Clustering en cours..."):
+#                 kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+#                 clusters = kmeans.fit_predict(X_scaled)
+#                 df_clustered = df_processed.copy()
+#                 df_clustered['Cluster'] = clusters
+#
+#                 pca_2d = PCA(n_components=2)
+#                 X_pca = pca_2d.fit_transform(X_scaled)
+#                 df_viz = pd.DataFrame({'PC1': X_pca[:, 0], 'PC2': X_pca[:, 1],
+#                                       'Cluster': clusters.astype(str), 'Attrition': df_processed['Attrition']})
+#
+#                 col1, col2 = st.columns(2)
+#                 with col1:
+#                     fig = px.scatter(df_viz, x='PC1', y='PC2', color='Cluster',
+#                                     title="Clusters (PCA)", color_discrete_sequence=px.colors.qualitative.Set1)
+#                     st.plotly_chart(fig, use_container_width=True)
+#                 with col2:
+#                     fig = px.scatter(df_viz, x='PC1', y='PC2', color='Attrition',
+#                                     title="Attrition (PCA)", color_discrete_map={'No': '#10B981', 'Yes': '#EF4444'})
+#                     st.plotly_chart(fig, use_container_width=True)
+#
+#                 col1, col2, col3 = st.columns(3)
+#                 col1.metric("Score Silhouette", f"{silhouette_score(X_scaled, clusters):.3f}")
+#                 col2.metric("Inertie", f"{kmeans.inertia_:.2f}")
+#                 col3.metric("Clusters", n_clusters)
+#
+#                 st.session_state['clusters'] = clusters
+#                 st.session_state['df_clustered'] = df_clustered
+#                 st.success("✅ Clustering terminé! Consultez l'onglet Profilage.")
+#
+#     with tab2:
+#         st.markdown("### Classification Ascendante Hiérarchique (CAH)")
+#         sample_size = st.slider("Taille de l'échantillon:", 100, min(1000, len(df)), 500)
+#         linkage_method = st.selectbox("Méthode de liaison:", ['ward', 'complete', 'average', 'single'])
+#
+#         if st.button("🌳 Générer le Dendrogramme"):
+#             with st.spinner("Calcul du dendrogramme..."):
+#                 indices = np.random.choice(len(X_scaled), sample_size, replace=False)
+#                 X_sample = X_scaled[indices]
+#                 Z = linkage(X_sample, method=linkage_method)
+#                 fig, ax = plt.subplots(figsize=(12, 6))
+#                 dendrogram(Z, truncate_mode='level', p=5, ax=ax)
+#                 ax.set_title("Dendrogramme (CAH)")
+#                 ax.set_xlabel("Individus")
+#                 ax.set_ylabel("Distance")
+#                 st.pyplot(fig)
+#
+#     with tab3:
+#         st.markdown("### Profilage des Clusters")
+#         if 'df_clustered' in st.session_state:
+#             df_clustered = st.session_state['df_clustered']
+#             attrition_by_cluster = df_clustered.groupby('Cluster')['Attrition'].value_counts(normalize=True).unstack()
+#             fig = px.bar(attrition_by_cluster, barmode='group', title="Taux d'Attrition par Cluster")
+#             st.plotly_chart(fig, use_container_width=True)
+#
+#             quant_vars, _ = get_variable_types(df_clustered)
+#             quant_vars = [v for v in quant_vars if v != 'Cluster']
+#             cluster_means = df_clustered.groupby('Cluster')[quant_vars].mean()
+#             cluster_means_norm = (cluster_means - cluster_means.min()) / (cluster_means.max() - cluster_means.min() + 1e-9)
+#
+#             default_radar = [v for v in ['Age', 'MonthlyIncome', 'YearsAtCompany', 'JobSatisfaction', 'WorkLifeBalance'] if v in quant_vars]
+#             selected_vars = st.multiselect("Variables pour le profil radar:", quant_vars, default=default_radar)
+#
+#             if selected_vars:
+#                 fig = go.Figure()
+#                 for cluster in cluster_means_norm.index:
+#                     fig.add_trace(go.Scatterpolar(
+#                         r=cluster_means_norm.loc[cluster, selected_vars].values,
+#                         theta=selected_vars, fill='toself', name=f'Cluster {cluster}'
+#                     ))
+#                 fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 1])), title="Profil des Clusters")
+#                 st.plotly_chart(fig, use_container_width=True)
+#
+#             st.dataframe(cluster_means.round(2), use_container_width=True)
+#         else:
+#             st.warning("Veuillez d'abord effectuer le clustering K-Means.")
 
 
 # ==================== PAGE: CLASSIFICATION ====================
@@ -1621,7 +1621,8 @@ def main():
     page = st.sidebar.radio(
         "Aller à:",
         ["🏠 Accueil", "📊 Exploration (EDA)", "🔬 Analyse Factorielle",
-         "🎯 Clustering", "🤖 Classification", "📝 Conclusion"]
+         # "🎯 Clustering",
+         "🤖 Classification", "📝 Conclusion"]
     )
 
     st.sidebar.markdown("---")
@@ -1640,8 +1641,8 @@ def main():
             page_exploration(df)
         elif page == "🔬 Analyse Factorielle":
             page_afdm(df)
-        elif page == "🎯 Clustering":
-            page_clustering(df)
+        # elif page == "🎯 Clustering":
+        #     page_clustering(df)
         elif page == "🤖 Classification":
             page_classification(df)
         elif page == "📝 Conclusion":
