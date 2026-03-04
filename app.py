@@ -300,13 +300,6 @@ def page_accueil():
         """)
     with col2:
         st.markdown("""
-        **Clustering**
-        - K-Means avec méthode du coude
-        - Classification Ascendante Hiérarchique (CAH)
-        - Validation par silhouette score
-        - Profilage des clusters
-        """)
-        st.markdown("""
         **Prédiction (Classification)**
         - Random Forest, Gradient Boosting, Logistic Regression
         - Gestion du déséquilibre (SMOTE)
