@@ -244,11 +244,42 @@ def page_accueil():
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("### 📦 Justification du Choix du Dataset")
+    st.markdown("""
+    <div class="success-box">
+    <strong>Pourquoi ce dataset ?</strong><br><br>
+    Le dataset <em>IBM HR Analytics Employee Attrition & Performance</em> a été choisi pour les raisons suivantes :
+    <ol>
+    <li><strong>Données mixtes (quantitatives + qualitatives) :</strong> Le dataset contient à la fois des variables 
+    numériques (Age, MonthlyIncome, YearsAtCompany…) et catégorielles (Department, JobRole, OverTime…), 
+    ce qui le rend particulièrement adapté à l'<strong>AFDM</strong> et permet aussi de comparer avec l'ACP, l'ACM et l'AFC.</li>
+    <li><strong>Problématique métier concrète :</strong> L'attrition (départ volontaire des employés) est un enjeu 
+    stratégique majeur en Ressources Humaines. Ce dataset permet de poser une problématique réelle et interprétable.</li>
+    <li><strong>Taille et qualité :</strong> Avec 1 470 observations et 35 variables, le dataset est suffisamment 
+    riche pour les analyses factorielles (nombre d'individus >> nombre de variables), sans valeurs manquantes.</li>
+    <li><strong>Variable cible binaire :</strong> La variable <code>Attrition</code> (Yes/No) sert naturellement 
+    de <strong>variable supplémentaire (illustrative)</strong> pour valider les axes factoriels, 
+    et de variable cible pour la classification supervisée.</li>
+    <li><strong>Déséquilibre réaliste :</strong> Le taux d'attrition de 16,1% reflète la réalité du monde du travail, 
+    ce qui rend l'analyse plus pertinente et met en évidence la nécessité de techniques comme SMOTE.</li>
+    </ol>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("### 🎯 Problématique")
-    st.write("""
-    **Question principale :** Quels sont les facteurs déterminants qui influencent la décision d'un employé 
-    de quitter l'entreprise, et comment peut-on prédire et prévenir l'attrition ?
-    """)
+    st.markdown("""
+    <div class="info-box">
+    <strong>Question principale :</strong> Quels sont les facteurs déterminants qui influencent la décision d'un employé 
+    de quitter l'entreprise, et comment peut-on prédire et prévenir l'attrition ?<br><br>
+    <strong>Sous-questions :</strong>
+    <ul>
+    <li>Quelles variables (quantitatives et qualitatives) discriminent le plus les employés qui partent vs restent ?</li>
+    <li>Existe-t-il des profils types d'employés à risque identifiables par analyse factorielle ?</li>
+    <li>Comment les plans factoriels révèlent-ils la structure sous-jacente des données RH ?</li>
+    <li>Peut-on valider l'analyse en projetant la variable Attrition comme point supplémentaire ?</li>
+    </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("### 🛠️ Méthodologie")
     col1, col2 = st.columns(2)
@@ -288,6 +319,20 @@ def page_accueil():
     Le dataset **IBM HR Analytics Employee Attrition & Performance** contient 1470 observations 
     et 35 variables décrivant les caractéristiques des employés.
     """)
+
+    with st.expander("📊 Détail des variables du dataset"):
+        st.markdown("""
+        | Type | Variables | Exemples |
+        |------|----------|----------|
+        | **Quantitatives continues** | 11 variables | Age, MonthlyIncome, DailyRate, DistanceFromHome, YearsAtCompany… |
+        | **Quantitatives ordinales** | 10 variables | Education (1-5), JobSatisfaction (1-4), WorkLifeBalance (1-4)… |
+        | **Qualitatives nominales** | 7 variables | Department, JobRole, MaritalStatus, OverTime, Gender… |
+        | **Qualitatives binaires** | 2 variables | Attrition (Yes/No), OverTime (Yes/No) |
+        | **Constantes (supprimées)** | 4 variables | EmployeeCount, StandardHours, Over18, EmployeeNumber |
+        
+        **Variable cible (supplémentaire) :** `Attrition` — utilisée comme variable illustrative en analyse factorielle 
+        pour valider l'interprétation des axes, puis comme variable à prédire en classification.
+        """)
 
 
 # ==================== PAGE: EXPLORATION ====================
@@ -431,6 +476,60 @@ def page_afdm(df):
             "AFC (Tableau de Contingence)": "<strong>AFC</strong> — Analyse la relation entre exactement 2 variables qualitatives via un tableau de contingence.",
         }
         st.markdown(f'<div class="info-box">{descriptions[model_type]}</div>', unsafe_allow_html=True)
+
+    # Justification détaillée du choix
+    justifications = {
+        "AFDM (Données Mixtes)": """
+        <div class="success-box">
+        <strong>Pourquoi l'AFDM est le modèle principal recommandé ?</strong><br><br>
+        Le dataset IBM HR contient simultanément des variables <strong>quantitatives</strong> (Age, MonthlyIncome, 
+        YearsAtCompany…) et <strong>qualitatives</strong> (Department, JobRole, OverTime…). 
+        L'AFDM (Analyse Factorielle des Données Mixtes) est la seule méthode qui traite les deux types 
+        de variables dans un cadre unifié, en normalisant les contributions de chaque type.<br><br>
+        <strong>Avantages :</strong> Vue d'ensemble complète, pas de perte d'information par encodage forcé, 
+        pondération équilibrée entre variables numériques et catégorielles.<br>
+        <strong>Outil :</strong> <code>prince.FAMD</code> (Python) — implémentation de l'AFDM de Pagès (2004).
+        </div>
+        """,
+        "ACP (Quantitatives)": """
+        <div class="success-box">
+        <strong>Pourquoi proposer l'ACP en complément ?</strong><br><br>
+        L'ACP permet d'analyser uniquement les variables numériques (Age, MonthlyIncome, YearsAtCompany, 
+        DistanceFromHome…) en identifiant les axes de plus grande variance. Elle est utile pour :<br>
+        • Visualiser les corrélations entre variables quantitatives (cercle des corrélations)<br>
+        • Identifier les dimensions principales de variation des profils d'employés<br>
+        • L'<strong>ACP centrée-réduite</strong> est recommandée ici car les variables ont des échelles très 
+        différentes (Age en années vs MonthlyIncome en dollars).<br><br>
+        <strong>Outil :</strong> <code>prince.PCA</code> — avec option centrée ou centrée-réduite.
+        </div>
+        """,
+        "ACM (Qualitatives)": """
+        <div class="success-box">
+        <strong>Pourquoi proposer l'ACM en complément ?</strong><br><br>
+        L'ACM est adaptée pour explorer les associations entre les variables qualitatives du dataset : 
+        Department, JobRole, MaritalStatus, BusinessTravel, OverTime, ainsi que les variables ordinales 
+        traitées comme catégorielles (Education, JobSatisfaction, WorkLifeBalance…).<br>
+        • Elle révèle quelles <strong>modalités</strong> sont fréquemment associées chez les mêmes individus<br>
+        • La correction de <strong>Benzécri</strong> est recommandée pour compenser la sous-estimation 
+        structurelle des valeurs propres en ACM.<br><br>
+        <strong>Outil :</strong> <code>prince.MCA</code> — avec corrections Benzécri/Greenacre.
+        </div>
+        """,
+        "AFC (Tableau de Contingence)": """
+        <div class="success-box">
+        <strong>Pourquoi proposer l'AFC ?</strong><br><br>
+        L'AFC (Analyse Factorielle des Correspondances) permet d'étudier la relation entre 
+        <strong>exactement deux variables qualitatives</strong> via leur tableau de contingence. 
+        Elle est utile ici pour explorer des associations spécifiques, par exemple :<br>
+        • <strong>Department × JobRole</strong> : structure organisationnelle<br>
+        • <strong>OverTime × Attrition</strong> : lien heures supplémentaires / départs<br>
+        • Le test du χ² valide si la relation est statistiquement significative avant d'interpréter le biplot.<br><br>
+        <strong>Outil :</strong> <code>prince.CA</code> — avec test d'indépendance intégré.
+        </div>
+        """,
+    }
+    with st.expander("📖 Justification détaillée du choix de ce modèle", expanded=False):
+        st.markdown(justifications[model_type], unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown("### ⚙️ Paramètres de l'Analyse")
@@ -652,6 +751,87 @@ def page_afdm(df):
                         display_variables(model, col_coords, n_components, analysis_name, df_analysis)
                 with tab4:
                     display_interpretation(model, col_coords, n_components, analysis_name, df_analysis)
+
+                # ==================== POINTS SUPPLÉMENTAIRES ====================
+                if analysis_name in ["ACP", "ACM", "AFDM"] and has_attrition:
+                    st.markdown("---")
+                    st.markdown("### 🔍 Validation par Points Supplémentaires")
+                    st.markdown("""
+                    <div class="info-box">
+                    <strong>Principe :</strong> La variable <code>Attrition</code> n'est <strong>pas utilisée 
+                    comme variable active</strong> dans l'analyse factorielle. Elle est projetée 
+                    <em>a posteriori</em> sur les plans factoriels en tant que <strong>variable supplémentaire 
+                    (illustrative)</strong> pour vérifier si les axes factoriels permettent de discriminer 
+                    les employés partants des restants. Si les barycentres des deux groupes (Yes/No) 
+                    sont bien séparés, cela <strong>valide l'interprétation</strong> des axes.
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    coord_cols_sup = [col for col in row_coords.columns if col != 'Attrition']
+                    rename_sup = {old: f"F{i}" for i, old in enumerate(coord_cols_sup)}
+                    rc_sup = row_coords.rename(columns=rename_sup)
+
+                    # Barycentres par groupe Attrition
+                    barycentres = rc_sup.groupby('Attrition')[[f'F{i}' for i in range(min(3, len(coord_cols_sup)))]].mean()
+                    st.markdown("#### Barycentres des groupes Attrition (points supplémentaires)")
+                    st.dataframe(barycentres.round(4), use_container_width=True)
+
+                    # Test de significativité (t-test sur chaque axe)
+                    group_yes = rc_sup[rc_sup['Attrition'] == 'Yes']
+                    group_no = rc_sup[rc_sup['Attrition'] == 'No']
+                    test_results = []
+                    for i in range(min(3, len(coord_cols_sup))):
+                        axis_name = f'F{i}'
+                        t_stat, p_val = stats.ttest_ind(group_yes[axis_name].dropna(), group_no[axis_name].dropna())
+                        test_results.append({
+                            'Axe': axis_name,
+                            'Barycentre Yes': barycentres.loc['Yes', axis_name] if 'Yes' in barycentres.index else np.nan,
+                            'Barycentre No': barycentres.loc['No', axis_name] if 'No' in barycentres.index else np.nan,
+                            't-stat': t_stat,
+                            'p-value': p_val,
+                            'Significatif (p<0.05)': '✅ Oui' if p_val < 0.05 else '❌ Non'
+                        })
+                    test_df = pd.DataFrame(test_results)
+                    st.dataframe(test_df.round(4), use_container_width=True)
+
+                    # Visualisation des barycentres sur le plan F0-F1
+                    fig_sup = px.scatter(rc_sup, x='F0', y='F1', color='Attrition',
+                                        color_discrete_map={'No': '#10B981', 'Yes': '#EF4444'},
+                                        title="Plan F0-F1 avec barycentres des groupes Attrition (★)",
+                                        opacity=0.3)
+                    # Ajouter les barycentres comme étoiles
+                    for grp in barycentres.index:
+                        color_grp = '#EF4444' if grp == 'Yes' else '#10B981'
+                        fig_sup.add_trace(go.Scatter(
+                            x=[barycentres.loc[grp, 'F0']], y=[barycentres.loc[grp, 'F1']],
+                            mode='markers+text', text=[f'★ {grp}'], textposition='top center',
+                            marker=dict(size=20, color=color_grp, symbol='star'),
+                            name=f'Barycentre {grp}', showlegend=True
+                        ))
+                    fig_sup.add_hline(y=0, line_dash="dash", line_color="gray")
+                    fig_sup.add_vline(x=0, line_dash="dash", line_color="gray")
+                    fig_sup.update_layout(height=600)
+                    st.plotly_chart(fig_sup, use_container_width=True)
+
+                    # Interprétation
+                    significant_axes = [r['Axe'] for r in test_results if r['p-value'] < 0.05]
+                    if significant_axes:
+                        st.markdown(f"""
+                        <div class="success-box">
+                        <strong>✅ Validation réussie :</strong> La variable supplémentaire Attrition est 
+                        significativement discriminée sur les axes <strong>{', '.join(significant_axes)}</strong> 
+                        (test t, p < 0.05). Cela confirme que les dimensions factorielles captent bien 
+                        les facteurs liés au départ des employés.
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown("""
+                        <div class="warning-box">
+                        <strong>⚠️ Résultat mitigé :</strong> Les barycentres des groupes Attrition ne sont 
+                        significativement séparés sur aucun des premiers axes. L'attrition est un phénomène 
+                        multifactoriel qui n'est pas entièrement capté par les premières dimensions.
+                        </div>
+                        """, unsafe_allow_html=True)
 
                 st.session_state['factor_coords'] = row_coords
                 st.session_state['factor_model'] = model
@@ -1335,6 +1515,99 @@ def page_conclusion():
     <li><strong>Plan de carrière clair</strong> pour les 25–35 ans</li>
     <li><strong>Enquêtes de satisfaction</strong> régulières et actions correctives</li>
     </ol>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("### 🔬 Justification du Choix du Modèle d'Analyse")
+    st.markdown("""
+    <div class="info-box">
+    <strong>Modèle principal : AFDM (Analyse Factorielle des Données Mixtes)</strong><br><br>
+    Le choix de l'AFDM comme méthode principale se justifie par la <strong>nature mixte</strong> du dataset :
+    <ul>
+    <li><strong>Variables quantitatives</strong> (Age, MonthlyIncome, YearsAtCompany…) → traitées comme en ACP (centrée-réduite)</li>
+    <li><strong>Variables qualitatives</strong> (Department, JobRole, OverTime…) → traitées comme en ACM (codage disjonctif)</li>
+    </ul>
+    L'AFDM équilibre les contributions des deux types de variables grâce à une pondération spécifique, 
+    évitant que les variables numériques (plus nombreuses) ne dominent l'analyse.<br><br>
+    <strong>Modèles complémentaires proposés :</strong>
+    <ul>
+    <li><strong>ACP centrée-réduite :</strong> Pour analyser finement les corrélations entre variables numériques 
+    (échelles différentes → standardisation nécessaire).</li>
+    <li><strong>ACM avec correction de Benzécri :</strong> Pour explorer les associations entre modalités qualitatives 
+    (correction nécessaire car les valeurs propres brutes de l'ACM sont sous-estimées).</li>
+    <li><strong>AFC :</strong> Pour étudier des associations bivariées spécifiques (ex. OverTime × Attrition).</li>
+    </ul>
+    <strong>Outil utilisé :</strong> Bibliothèque <code>prince</code> (Python), spécialisée en analyses factorielles.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("### ✍️ Synthèse Individuelle — Difficultés Rencontrées")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        <div class="stat-card">
+        <h4>Mohammed Tbahriti</h4>
+        <strong>Contributions :</strong> Architecture de l'application Streamlit, implémentation de l'AFDM et de l'ACP, 
+        pipeline de machine learning (SMOTE, Random Forest, validation croisée).<br><br>
+        <strong>Difficultés :</strong>
+        <ul>
+        <li>La bibliothèque <code>prince</code> a changé d'API entre versions, ce qui a nécessité des fonctions 
+        d'adaptation (<code>safe_column_coordinates</code>, etc.) pour garantir la compatibilité.</li>
+        <li>Le déséquilibre des classes (16% d'attrition) faussait fortement les métriques de classification ; 
+        l'intégration de SMOTE et l'utilisation du F1-score ont résolu ce problème.</li>
+        <li>La gestion des variables ordinales (Education, JobSatisfaction) qui peuvent être traitées 
+        comme quantitatives ou qualitatives selon le contexte d'analyse.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+        <div class="stat-card">
+        <h4>Youcef Moulai</h4>
+        <strong>Contributions :</strong> Exploration des données (EDA), détection des outliers, 
+        implémentation de l'ACM et de l'AFC, analyse des corrélations.<br><br>
+        <strong>Difficultés :</strong>
+        <ul>
+        <li>En ACM, les valeurs propres brutes sont très faibles (structurellement sous-estimées), 
+        ce qui rend l'interprétation de l'inertie expliquée contre-intuitive. Les corrections 
+        de Benzécri et Greenacre ont été essentielles.</li>
+        <li>Le choix des variables qualitatives pertinentes pour l'ACM : certaines variables 
+        ordinales (1-5) donnent de meilleurs résultats en ACP qu'en ACM.</li>
+        <li>La lecture du biplot AFC nécessite de bien comprendre les profils-lignes 
+        et profils-colonnes pour une interprétation correcte.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown("""
+        <div class="stat-card">
+        <h4>Yahia Ouahmed Yanis</h4>
+        <strong>Contributions :</strong> Clustering (K-Means, CAH), profilage des clusters, 
+        validation par silhouette score, visualisation des résultats.<br><br>
+        <strong>Difficultés :</strong>
+        <ul>
+        <li>Le choix du nombre optimal de clusters : la méthode du coude n'est pas toujours claire, 
+        le silhouette score et l'interprétabilité métier ont guidé le choix final.</li>
+        <li>L'encodage des variables catégorielles pour le clustering (LabelEncoder vs OneHotEncoder) 
+        impacte significativement les résultats.</li>
+        <li>Le dendrogramme CAH sur 1 470 individus est illisible ; 
+        un sous-échantillonnage a été nécessaire pour la visualisation.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="info-box">
+    <strong>Questions ouvertes :</strong>
+    <ul>
+    <li>L'AFDM donne-t-elle toujours de meilleurs résultats que l'ACP + ACM séparées ?</li>
+    <li>Comment interpréter les axes factoriels quand les contributions sont réparties uniformément ?</li>
+    <li>La projection des points supplémentaires est-elle fiable quand le taux d'attrition est très déséquilibré ?</li>
+    <li>Quelle est la robustesse des clusters identifiés face à des perturbations des données ?</li>
+    </ul>
     </div>
     """, unsafe_allow_html=True)
 
